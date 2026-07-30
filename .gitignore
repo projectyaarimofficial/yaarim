@@ -4,8 +4,8 @@ __pycache__/
 *.pyo
 
 # Runtime / regenerable data (recreated by init_db)
-yoni/data/*.db
-yoni/data/backups/
+data/*.db
+data/backups/
 
 # Local, machine-specific settings
 .claude/settings.local.json
@@ -13,3 +13,11 @@ yoni/data/backups/
 # Real student data is sensitive — never commit it (demo students are fine)
 students/real/*
 !students/real/README.md
+
+# Documentation générée par le moteur de doc — régénérable, et actuellement périmée
+# (produite avant le refactor hexagonal). À régénérer, pas à versionner.
+Documentation/CodeReference/
+
+# Environnement virtuel local (Windows/macOS/Linux)
+.venv/
+venv/

@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "yaarim"
+version = "0.2.0"
+description = "יוני — מורה פרטי בעברית, רץ מקומית בלבד"
+requires-python = ">=3.10"
+dependencies = [
+    "requests==2.34.2",
+    "streamlit==1.60.0",
+]
+
+[project.scripts]
+# אחרי pip install -e .  אפשר פשוט:  yaarim
+yaarim = "yoni.interfaces.cli.app:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"yoni.interfaces.web" = ["fonts/*.woff2"]
+
+[project.optional-dependencies]
+dev = ["mypy==2.3.0"]
+
+# ---------------------------------------------------------------------------
+# mypy — מה שהופך את ההערות מתיעוד לבדיקה.
+#
+# ההגדרה מדורגת בכוונה: הליבה (domain · application · agents) נבדקת בקפדנות,
+# כי שם החוזים חיים. שכבות הממשק והתשתית נבדקות רך יותר - הן נוגעות בספריות
+# חיצוניות בלי stubs, ולדרוש מהן אותה קפדנות היה מייצר רעש ולא ביטחון.
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.10"
+files = ["src"]
+mypy_path = "src"
+ignore_missing_imports = true          # streamlit/requests בלי stubs
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+show_error_codes = true
+pretty = true
+
+[[tool.mypy.overrides]]
+module = ["yoni.domain.*", "yoni.application.*", "yoni.agents.*"]
+disallow_untyped_defs = false          # עדיין לא 100% מוערים - נוקשה על מה שכן
+check_untyped_defs = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = ["yoni.interfaces.*", "yoni.infrastructure.*"]
+check_untyped_defs = false
+
+# ספריות צד-שלישי: לא עוקבים לתוכן. numpy (שנגרר ע"י streamlit) משתמש בתחביר
+# של 3.12 ב-stubs שלו, ובלי זה הבדיקה נעצרת על קוד שאינו שלנו. אנחנו בודקים
+# את הקוד שלנו - לא את הספריות.
+[[tool.mypy.overrides]]
+module = ["numpy.*", "streamlit.*", "requests.*", "pandas.*", "PIL.*"]
+follow_imports = "skip"
+follow_imports_for_stubs = true

@@ -1,0 +1,16 @@
+# ערכת הנושא של streamlit עצמו. בלי זה, streamlit עוקב אחרי הגדרת המערכת של
+# המשתמש (בהיר/כהה) ודורס את הצבעים שלנו - הקיר היה מצויר על רקע שחור.
+# הערכים כאן זהים לטוקנים ב-yoni/ui/theme.py, ומקור האמת הוא שם.
+
+[theme]
+base = "light"
+primaryColor = "#2E6DA4"              # set — לבנה שהונחה
+backgroundColor = "#E9EEF3"           # mortar — הטיט
+secondaryBackgroundColor = "#FDFDFC"  # paper — משטחים מורמים
+textColor = "#16233B"                 # ink
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false

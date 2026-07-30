@@ -1,0 +1,11 @@
+.git
+__pycache__
+*.pyc
+*.pyo
+.venv
+venv
+Documentation
+students/real
+data/*.db
+data/backups
+*.pdf

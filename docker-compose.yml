@@ -1,0 +1,62 @@
+# הרצה:
+#   docker compose up app                    → הממשק על http://localhost:8501
+#   docker compose run --rm cli              → ה-CLI של /build (אינטראקטיבי)
+#   docker compose run --rm check            → בדיקת התקינות
+#
+# תנאי מוקדם: Ollama רץ על המארח (ollama serve) עם המודלים שב-config.py.
+#
+# הערה על VRAM: nvidia-smi לא קיים בתוך הקונטיינר, ולכן detect_vram_gb מחזיר None
+# ו-startup_check מסתמך על הקבוע VRAM_BUDGET_GB במקום על מדידה אמיתית.
+# ensure_capacity ממשיך לעבוד כרגיל (הוא נשען על MODEL_VRAM_GB, לא על המדידה).
+
+services:
+  app:
+    build:
+      context: .
+      args:
+        UID: ${DOCKER_UID:-1000}
+        GID: ${DOCKER_GID:-1000}
+    ports:
+      - "8501:8501"
+    environment:
+      # Ollama על המארח. ב-Docker Desktop (Mac/Windows) host.docker.internal קיים מעצמו;
+      # ב-Linux הוא נוצר ע"י extra_hosts שלמטה.
+      OLLAMA_HOST: ${OLLAMA_HOST:-http://host.docker.internal:11434}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      # גבול הכתיבה: רק הפרויקט. כל מה שמחוץ לו לא קיים במרחב הזה.
+      - .:/app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8501/_stcore/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  cli:
+    build:
+      context: .
+      args:
+        UID: ${DOCKER_UID:-1000}
+        GID: ${DOCKER_GID:-1000}
+    environment:
+      OLLAMA_HOST: ${OLLAMA_HOST:-http://host.docker.internal:11434}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - .:/app
+    stdin_open: true
+    tty: true
+    command: ["python", "-m", "yoni"]
+
+  check:
+    build:
+      context: .
+      args:
+        UID: ${DOCKER_UID:-1000}
+        GID: ${DOCKER_GID:-1000}
+    volumes:
+      - .:/app
+    command: ["./scripts/check.sh"]
