@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Runtime / regenerable data (recreated by init_db)
+yoni/data/*.db
+yoni/data/backups/
+
+# Local, machine-specific settings
+.claude/settings.local.json
+
+# Real student data is sensitive — never commit it (demo students are fine)
+students/real/*
+!students/real/README.md

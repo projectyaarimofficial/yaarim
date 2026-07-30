@@ -1,0 +1,11 @@
+{
+  "student_id": "eitan",
+  "updated_at": "2026-07-24",
+  "missing_bricks": [
+    {
+      "topic": "מערכת השמש",
+      "brick": "השם המדויק של הכוכב שבמרכז מערכת השמש",
+      "status": "open"
+    }
+  ]
+}

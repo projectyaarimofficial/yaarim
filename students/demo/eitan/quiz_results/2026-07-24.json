@@ -1,0 +1,21 @@
+{
+  "date": "2026-07-24",
+  "student_id": "eitan",
+  "results": [
+    {
+      "topic": "מערכת השמש",
+      "question": "איזו כוכב מייצג את השמש במערכת השמש שלנו?",
+      "type": "exact",
+      "student_answer": "השמש",
+      "correct_answer": "שמש",
+      "correct": false
+    },
+    {
+      "topic": "מערכת השמש",
+      "question": "מהו כדור הארץ?",
+      "type": "open",
+      "student_answer": "כדור הארץ הוא כוכב הלכת השלישי מהשמש שעליו אנו חיים",
+      "correct": true
+    }
+  ]
+}
