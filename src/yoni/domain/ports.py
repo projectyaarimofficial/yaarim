@@ -20,6 +20,7 @@ from typing import Optional, Sequence
 
 from .models import (
     Brick,
+    Conversation,
     GradeResult,
     Question,
     SafetyFinding,
@@ -96,6 +97,86 @@ class ConversationLog(ABC):
         """dict עם summary ו-date, או None."""
 
 
+class TranscriptStore(ABC):
+    """התמליל המלא של השיחות - כל תור, לא רק הסיכום.
+
+    ConversationLog שומר *מסקנות* (סיכום, ציון, התרעה). כאן נשמר מה שנאמר
+    בפועל, וזה מה שמאפשר גם להמשיך שיחה אחרי שהדפדפן נסגר וגם ליוני לזכור
+    שיחות קודמות במקום לפגוש את התלמיד מאפס בכל פעם.
+
+    שני מימושים אמיתיים: SQLite (נשאל בשאילתה) וקבצי JSON בתיקיית התלמיד
+    (נפתחים ונקראים בעין) - אותה הפרדה שכבר קיימת ב-ConversationLog.
+    """
+
+    @abstractmethod
+    def start(self, student_id: str, title: str = "") -> str:
+        """פותח שיחה חדשה ומחזיר את המזהה שלה."""
+
+    @abstractmethod
+    def add_turn(self, conversation_id: str, student_id: str, speaker: str,
+                 text: str, is_safety: bool = False) -> None:
+        """מוסיף תור. חייב להיות עמיד: כישלון כתיבה לא יפיל את השיחה."""
+
+    @abstractmethod
+    def finish(self, conversation_id: str, summary: str = "") -> None:
+        """סוגר שיחה. summary אופציונלי - שיחה שנקטעה נסגרת בלעדיו."""
+
+    @abstractmethod
+    def turns(self, conversation_id: str) -> Sequence[dict]:
+        """כל התורות בשיחה, לפי הסדר. dict עם speaker · text · ts."""
+
+    @abstractmethod
+    def conversations(self, student_id: str, limit: int = 50) -> Sequence[Conversation]:
+        """שיחות התלמיד, החדשה ראשונה."""
+
+    @abstractmethod
+    def open_conversation(self, student_id: str) -> Optional[Conversation]:
+        """השיחה הפתוחה האחרונה, אם יש - כדי להמשיך אותה ולא לפתוח חדשה."""
+
+    @abstractmethod
+    def recent_turns(self, student_id: str, limit: int = 40,
+                     exclude: Optional[str] = None) -> Sequence[dict]:
+        """התורות האחרונים *מכל* השיחות - הזיכרון ארוך-הטווח של יוני."""
+
+    @abstractmethod
+    def delete(self, student_id: str, conversation_id: str) -> bool:
+        """מוחק שיחה ואת כל התורות שלה. student_id נדרש כדי שלא נמחק
+        שיחה של תלמיד אחר בגלל מזהה שהודבק בטעות."""
+
+
+class SpeechSynthesizer(ABC):
+    """הופך טקסט עברי לדיבור. מקומי בלבד - שום טקסט של תלמיד לא יוצא מהמכונה.
+
+    הדיבור הוא מצב הבסיס של יוני, לא קישוט: תלמיד שמתקשה בקריאה לומד טוב
+    יותר כששומעים לו. הכתב נשאר זמין דרך מתג.
+    """
+
+    @abstractmethod
+    def speak(self, text: str) -> Optional[bytes]:
+        """WAV שלם כ-bytes, או None אם הדיבור אינו זמין.
+
+        None הוא תשובה לגיטימית: אם מנוע הדיבור חסר, השיעור נמשך בכתב.
+        """
+
+    @property
+    @abstractmethod
+    def available(self) -> bool:
+        """האם אפשר לדבר עכשיו - בלי לנסות ולהיכשל מול התלמיד."""
+
+
+class SpeechTranscriber(ABC):
+    """הופך הקלטה של התלמיד לטקסט. גם כאן - מקומי בלבד."""
+
+    @abstractmethod
+    def transcribe(self, audio: bytes) -> str:
+        """טקסט בעברית, או מחרוזת ריקה אם לא זוהה דבר."""
+
+    @property
+    @abstractmethod
+    def available(self) -> bool:
+        ...
+
+
 class SafetyPolicy(ABC):
     """מדיניות בטיחות: מזהה מצוקה לפני שהמודל נשאל."""
 
@@ -149,8 +230,9 @@ class Clock(ABC):
 
 
 __all__ = [
-    "Brick", "Clock", "ConversationLog", "GradeResult", "LanguageModel",
-    "LanguageModelError", "PasswordStore", "Question", "SafetyFinding",
-    "SafetyPolicy", "Student", "StudentStatus", "StudentRepository",
-    "WriteDenied", "WritePolicy",
+    "Brick", "Clock", "Conversation", "ConversationLog", "GradeResult",
+    "LanguageModel", "LanguageModelError", "PasswordStore", "Question",
+    "SafetyFinding", "SafetyPolicy", "Student", "StudentStatus",
+    "SpeechSynthesizer", "SpeechTranscriber", "StudentRepository",
+    "TranscriptStore", "WriteDenied", "WritePolicy",
 ]

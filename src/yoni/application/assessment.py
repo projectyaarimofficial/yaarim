@@ -7,19 +7,30 @@
 
 from typing import List, Optional
 
+from ..content.seed_content import content_items
 from ..domain.models import GradeResult, Question
 from ..domain.ports import ConversationLog, StudentRepository
 
 
 class AssessmentService:
     def __init__(self, agent_factory, conversation_log: ConversationLog,
-                 repository: StudentRepository):
+                 repository: StudentRepository, content_db=None):
         self._agents = agent_factory
         self._log = conversation_log
         self._repo = repository
+        self._content_db = content_db
 
     def create_quiz(self, request: str, num_questions: int = 3) -> List[Question]:
         return self._agents.create("quiz").generate(request, num_questions)
+
+    def content_quiz(self, student_id: str, track: str = "finlit", num_questions: int = 3):
+        """Read a quiz from the content bank; return an empty list when it is empty."""
+        if not self._content_db:
+            return []
+        rows = content_items(self._content_db, track, num_questions)
+        import json
+        return [row | {"choices_he": json.loads(row["choices_he"])
+                       if row["choices_he"] else None} for row in rows]
 
     def grade(self, question: Question, answer: str,
               student_id: Optional[str] = None) -> GradeResult:

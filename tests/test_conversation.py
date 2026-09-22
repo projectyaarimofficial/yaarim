@@ -105,12 +105,27 @@ class TestGreeting(IsolatedProject):
             returning, last_session={"summary": "למדנו שברים", "date": "2026-01-01"})
         self.assertIn("שברים", message)
 
-    def test_open_brick_surfaces_when_no_session(self):
+    def test_greeting_does_not_push_the_open_brick(self):
+        """הברכה פותחת בשאלה, לא בסדר יום.
+
+        קודם הברכה הכריזה על הנושא הפתוח ושאלה "רוצה שנמשיך בו?" - שאלה
+        שמזמינה תשובה אחת. הנושא הפתוח עדיין קיים ועדיין מגיע לסוכן כרקע
+        (ראו TestTutorContext), אבל הוא נאמר רק כשהתלמיד מבקש הצעה.
+        """
         self.container.repository.create("dana", "דנה")
         self.container.repository.open_brick("dana", "מערכת השמש", "הכוכב שבמרכז")
         status = self.container.repository.status("dana")
         student = self.container.repository.find("dana")
-        self.assertIn("מערכת השמש", self.service.greeting(student, status=status))
+        message = self.service.greeting(student, status=status)
+        self.assertNotIn("מערכת השמש", message)
+        self.assertIn("במה", message)
+
+    def test_greeting_never_offers_to_continue_where_we_stopped(self):
+        student = self.container.repository.create("dana", "דנה").as_returning()
+        message = self.service.greeting(
+            student, last_session={"summary": "למדנו שברים", "date": "2026-01-01"})
+        self.assertNotIn("מאיפה שעצרנו", message)
+        self.assertIn("שברים", message)  # מזכיר מה היה - בלי להציע להמשיך בו
 
 
 class TestTutorContext(IsolatedProject):

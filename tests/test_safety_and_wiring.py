@@ -158,8 +158,20 @@ class TestSettings(unittest.TestCase):
     def test_overrides_produce_a_copy(self):
         original = Settings(project_root="/tmp")
         modified = original.with_overrides(tutor_model="other")
-        self.assertEqual(original.tutor_model, "gemma3:4b")
+        self.assertEqual(original.tutor_model, "gemma3:12b")
         self.assertEqual(modified.tutor_model, "other")
+
+    def test_localhost_is_rewritten_to_avoid_the_ipv6_penalty(self):
+        """localhost מתרגם ל-::1 ראשון, ו-Ollama אינו מאזין שם.
+
+        המחיר הנמדד: 2.05 שניות timeout לכל קריאה, פעמיים לכל הודעה של
+        תלמיד. מארח אחר (מכונה אחרת ברשת) נשאר כמו שהוא.
+        """
+        from yoni.config.settings import _normalize_host
+        self.assertEqual(_normalize_host("http://localhost:11434"),
+                         "http://127.0.0.1:11434")
+        self.assertEqual(_normalize_host("http://gpu-box:11434"),
+                         "http://gpu-box:11434")
 
 
 class TestVramBudget(IsolatedProject):
@@ -184,6 +196,29 @@ class TestVramBudget(IsolatedProject):
     def test_light_model_beside_light_model_is_fine(self):
         budget = self._budget(["gemma3:4b"])
         self.assertEqual(budget.ensure_capacity("nomic-embed-text"), [])
+
+    def test_the_loaded_list_is_not_refetched_on_every_message(self):
+        """הבדיקה הזו היא על זמן ההמתנה של תלמיד.
+
+        ensure_capacity רץ לפני כל הודעה, ופנה ל-Ollama בכל פעם. אם זה חוזר
+        לקרות, כל תשובה מתארכת - ואף בדיקה אחרת לא תתפוס את זה.
+        """
+        from yoni.infrastructure.llm.vram import VramBudget
+
+        class Counting(VramBudget):
+            calls = 0
+            def loaded_models(self):
+                Counting.calls += 1
+                return ["gemma3:12b"]
+
+        budget = Counting(self.settings)
+        for _ in range(5):
+            budget.ensure_capacity("gemma3:12b")
+        self.assertEqual(Counting.calls, 1)
+
+        budget.invalidate()
+        budget.ensure_capacity("gemma3:12b")
+        self.assertEqual(Counting.calls, 2)
 
     def test_unmanaged_model_is_left_alone(self):
         budget = self._budget(["gemma3:4b"])

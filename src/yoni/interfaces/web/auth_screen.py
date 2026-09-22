@@ -10,16 +10,11 @@ from yoni.interfaces.web import theme
 
 
 def _enter(container, student):
-    """מכניס תלמיד מאומת, עם ברכת פתיחה שנבנית בקוד (בלי קריאה למודל)."""
+    """מכניס תלמיד מאומת - וממשיך את השיחה הפתוחה שלו אם יש כזו."""
+    from yoni.interfaces.web.session import open_or_resume
+
     st.session_state.student = student
-    conversation = container.conversation
-    greeting = conversation.greeting(
-        student,
-        status=container.repository.status(student.student_id),
-        last_session=container.conversation_log.last_session(student.student_id),
-    )
-    from yoni.domain.models import Turn
-    st.session_state.thread = [Turn(speaker="yoni", text=greeting, model_called=False)]
+    open_or_resume(container, student)
     st.rerun()
 
 

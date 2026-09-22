@@ -12,11 +12,18 @@ from .application.assessment import AssessmentService
 from .application.authoring import AuthoringService
 from .application.conversation import ConversationService
 from .config import settings as settings_module
+from .content.mastery import MasteryService
+from .content.seed_content import seed_content
 from .domain.ports import Clock
 from .infrastructure.persistence.files import FileConversationLog, FileStudentRepository
 from .infrastructure.persistence.sqlite import (
     CompositeConversationLog,
     SqliteConversationLog,
+)
+from .infrastructure.persistence.transcripts import (
+    CompositeTranscriptStore,
+    FileTranscriptMirror,
+    SqliteTranscriptStore,
 )
 from .infrastructure.safety.keywords import KeywordSafetyPolicy
 from .infrastructure.security.passwords import SqlitePasswordStore
@@ -97,12 +104,64 @@ class Container:
         return self._get("sqlite_log", lambda: SqliteConversationLog(self.settings.db_path))
 
     @property
+    def content_db(self):
+        def build():
+            import logging
+            logging.getLogger(__name__).warning(
+                "Streamlit Community Cloud disk is ephemeral; learning memory will not survive restarts."
+            )
+            seed_content(self.settings.db_path)
+            return self.settings.db_path
+        return self._get("content_db", build)
+
+    @property
+    def mastery(self):
+        return self._get("mastery", lambda: MasteryService(self.content_db, self._clock))
+
+    @property
     def conversation_log(self):
         """שני יעדים במפורש: קבצים לקריאה אנושית, SQL לשאילתות מצטברות."""
         return self._get("log", lambda: CompositeConversationLog(
             FileConversationLog(self.repository, self._clock),
             self.sqlite_log,
         ))
+
+    @property
+    def transcripts(self):
+        """התמליל המלא: SQLite כמקור אמת, קבצי JSON כמראה קריאה-לאדם."""
+        return self._get("transcripts", lambda: CompositeTranscriptStore(
+            SqliteTranscriptStore(self.settings.db_path, self._clock),
+            FileTranscriptMirror(self.repository, self._clock),
+        ))
+
+    @property
+    def speech(self):
+        """מנוע הדיבור. נבנה פעם אחת - טעינת הקול עולה כשנייה."""
+        def build():
+            from .infrastructure.speech.tts import NoSpeech, PiperSpeech
+            if not self.settings.speech_enabled:
+                return NoSpeech()
+            return PiperSpeech(
+                self.settings.speech_voice_path,
+                self.settings.speech_config_path,
+                length_scale=self.settings.speech_length_scale,
+                noise_scale=self.settings.speech_noise_scale,
+                noise_w_scale=self.settings.speech_noise_w_scale,
+            )
+        return self._get("speech", build)
+
+    @property
+    def transcriber(self):
+        """תמלול המיקרופון. המודל נטען רק בהקלטה הראשונה."""
+        def build():
+            from .infrastructure.speech.stt import NoTranscriber, WhisperTranscriber
+            if not self.settings.microphone_enabled:
+                return NoTranscriber()
+            return WhisperTranscriber(
+                self.settings.stt_model,
+                download_root=self.settings.stt_cache_dir,
+            )
+        return self._get("transcriber", build)
 
     @property
     def safety_policy(self):
@@ -120,12 +179,15 @@ class Container:
     @property
     def conversation(self):
         return self._get("conversation", lambda: ConversationService(
-            self.agent_factory, self.safety_policy, self.conversation_log))
+            self.agent_factory, self.safety_policy, self.conversation_log,
+            content_db=self.content_db, mastery=self.mastery, track="finlit",
+            transcripts=self.transcripts))
 
     @property
     def assessment(self):
         return self._get("assessment", lambda: AssessmentService(
-            self.agent_factory, self.conversation_log, self.repository))
+            self.agent_factory, self.conversation_log, self.repository,
+            content_db=self.content_db))
 
     @property
     def authoring(self):

@@ -4,13 +4,29 @@ __pycache__/
 *.pyo
 
 # Runtime / regenerable data (recreated by init_db)
+*.db
 data/*.db
 data/backups/
+# גיבויי DB ידניים. *.db לא תופס אותם, והם מכילים hash-ים של סיסמאות.
+*.db.bak-*
+*.db.bak
+
+# משקלי מודלים - כ-3GB, ומורדים אוטומטית בהתקנה. GitHub דוחה קבצים מעל
+# 100MB, וקובץ שנדחף פעם אחת נשאר בהיסטוריה לנצח גם אם מוחקים אותו.
+models/
+
+# דגימות קול שנוצרו לבדיקה - פלט, לא מקור.
+voice_samples/
+*.wav
+
+# Local secrets
+.env
 
 # Local, machine-specific settings
 .claude/settings.local.json
 
 # Real student data is sensitive — never commit it (demo students are fine)
+students/
 students/real/*
 !students/real/README.md
 

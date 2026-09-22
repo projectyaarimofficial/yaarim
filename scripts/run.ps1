@@ -27,7 +27,9 @@ if (-not (Test-Path $VenvPython)) {
 $env:PYTHONPATH = Join-Path $Root "src"
 
 # Ollama רץ על המכונה עצמה - לא בקונטיינר, ולכן localhost.
-if (-not $env:OLLAMA_HOST) { $env:OLLAMA_HOST = "http://localhost:11434" }
+# 127.0.0.1 ולא localhost: על Windows השם מתרגם קודם ל-::1, ו-Ollama אינו
+# מאזין שם - כל קריאה משלמת ~2 שניות timeout לפני הנפילה ל-IPv4.
+if (-not $env:OLLAMA_HOST) { $env:OLLAMA_HOST = "http://127.0.0.1:11434" }
 
 try {
     Invoke-WebRequest -Uri "$env:OLLAMA_HOST/api/tags" -TimeoutSec 3 -UseBasicParsing | Out-Null

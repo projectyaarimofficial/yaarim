@@ -1,2 +1,16 @@
 requests==2.34.2
 streamlit==1.60.0
+
+# דיבור עברי מקומי. piper-tts כולל בתוכו את Nakdimon לניקוד; phonikud נדרש
+# רק לקולות מסוג phoneme_type=raw (michael/shaul), שמצפים ל-IPA מוכן.
+piper-tts==1.8.0
+phonikud==0.4.1
+phonikud-onnx==1.0.6
+
+# תמלול המיקרופון (whisper מכוונן-עברית של ivrit.ai).
+faster-whisper==1.2.1
+
+# ספריות ה-CUDA ש-CTranslate2 צריך. בלעדיהן התמלול נופל ל-CPU: 14.6 שניות
+# במקום 0.3. ב-Windows הן גם צריכות רישום מפורש - ראו register_cuda_libraries.
+nvidia-cublas-cu12
+nvidia-cudnn-cu12>=9,<10

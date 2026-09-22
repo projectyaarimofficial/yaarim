@@ -1,0 +1,140 @@
+{
+  "track": "finlit",
+  "topics": [
+    {
+      "id": "money-basics",
+      "track": "finlit",
+      "name_he": "מהו כסף",
+      "summary_he": "כסף הוא אמצעי לתשלום, יחידת מידה לערך ואמצעי לשמירת ערך. נכיר הכנסה, הוצאה ומחיר.",
+      "grade_band": "ה-ו",
+      "seq": 1,
+      "prereqs": []
+    },
+    {
+      "id": "percentages",
+      "track": "finlit",
+      "name_he": "אחוזים בחיי היום-יום",
+      "summary_he": "אחוז הוא חלק מתוך מאה. נשתמש בו להנחות, התייקרויות, ריבית ומסים.",
+      "grade_band": "ה-ו",
+      "seq": 2,
+      "prereqs": []
+    },
+    {
+      "id": "banking-payments",
+      "track": "finlit",
+      "name_he": "חשבון בנק ואמצעי תשלום",
+      "summary_he": "נכיר חשבון עובר ושב, כרטיס חיוב, העברה בנקאית, מזומן והבדל בין חיוב מיידי לדחוי.",
+      "grade_band": "ו-ז",
+      "seq": 3,
+      "prereqs": ["money-basics"]
+    },
+    {
+      "id": "gross-net-payslip",
+      "track": "finlit",
+      "name_he": "ברוטו, נטו ותלוש השכר",
+      "summary_he": "ברוטו הוא השכר לפני ניכויים ונטו הוא הסכום שנשאר לתשלום. בתלוש רואים שכר, ניכויים והפרשות.",
+      "grade_band": "ז-ח",
+      "seq": 4,
+      "prereqs": ["percentages"]
+    },
+    {
+      "id": "personal-budget",
+      "track": "finlit",
+      "name_he": "תקציב אישי",
+      "summary_he": "תקציב הוא תכנון של הכנסות והוצאות לאורך זמן, כדי לדעת מה אפשר לשלם ולחסוך.",
+      "grade_band": "ז-ח",
+      "seq": 5,
+      "prereqs": ["money-basics", "banking-payments"]
+    },
+    {
+      "id": "needs-wants",
+      "track": "finlit",
+      "name_he": "צרכים ורצונות",
+      "summary_he": "צרכים חיוניים לקיום שונים מרצונות שמוסיפים נוחות או הנאה. ההבחנה עוזרת לקבל החלטות בתקציב.",
+      "grade_band": "ה-ו",
+      "seq": 6,
+      "prereqs": ["personal-budget"]
+    },
+    {
+      "id": "saving-goal",
+      "track": "finlit",
+      "name_he": "חיסכון למטרה",
+      "summary_he": "מטרה ברורה, סכום יעד, תאריך והפקדות קבועות הופכים חיסכון לתוכנית שאפשר לעקוב אחריה.",
+      "grade_band": "ו-ז",
+      "seq": 7,
+      "prereqs": ["personal-budget", "needs-wants"]
+    },
+    {
+      "id": "simple-interest",
+      "track": "finlit",
+      "name_he": "ריבית פשוטה",
+      "summary_he": "בריבית פשוטה מחשבים את הריבית בכל תקופה לפי הקרן המקורית, ולא מצרפים אותה לקרן.",
+      "grade_band": "ז-ח",
+      "seq": 8,
+      "prereqs": ["percentages", "saving-goal"]
+    },
+    {
+      "id": "compound-interest",
+      "track": "finlit",
+      "name_he": "ריבית דריבית",
+      "summary_he": "בריבית דריבית הריבית מצטרפת לסכום, ולכן בתקופה הבאה גם היא יכולה לצבור ריבית.",
+      "grade_band": "ח-ט",
+      "seq": 9,
+      "prereqs": ["simple-interest", "saving-goal"]
+    },
+    {
+      "id": "inflation-purchasing-power",
+      "track": "finlit",
+      "name_he": "אינפלציה וכוח הקנייה",
+      "summary_he": "אינפלציה היא עלייה כללית במחירים. כשמחירים עולים, אותו סכום כסף קונה בדרך כלל פחות.",
+      "grade_band": "ח-ט",
+      "seq": 10,
+      "prereqs": ["percentages", "money-basics"]
+    },
+    {
+      "id": "loans-total-cost",
+      "track": "finlit",
+      "name_he": "הלוואות ועלות האשראי הכוללת",
+      "summary_he": "הלוואה מחזירים בדרך כלל בתשלומים. העלות הכוללת כוללת את הקרן, הריבית ולעיתים עמלות.",
+      "grade_band": "ח-ט",
+      "seq": 11,
+      "prereqs": ["simple-interest", "personal-budget"]
+    },
+    {
+      "id": "overdraft-expensive-credit",
+      "track": "finlit",
+      "name_he": "מינוס ואשראי יקר",
+      "summary_he": "יתרה שלילית ואשראי בריבית גבוהה עלולים להגדיל את החוב במהירות. חשוב לבדוק ריבית ועלות כוללת.",
+      "grade_band": "ח-ט",
+      "seq": 12,
+      "prereqs": ["loans-total-cost", "banking-payments"]
+    },
+    {
+      "id": "taxes-israel",
+      "track": "finlit",
+      "name_he": "מסים בישראל",
+      "summary_he": "נכיר מע״מ, מס הכנסה וביטוח לאומי, ונבין שמס יכול להופיע במחיר או כניכוי מהשכר.",
+      "grade_band": "ח-ט",
+      "seq": 13,
+      "prereqs": ["gross-net-payslip", "percentages"]
+    },
+    {
+      "id": "risk-return-diversification",
+      "track": "finlit",
+      "name_he": "סיכון, תשואה ופיזור",
+      "summary_he": "תשואה היא השינוי בערך או בהכנסה מהשקעה. סיכון הוא אי-ודאות, ופיזור עשוי להפחית תלות בנכס יחיד.",
+      "grade_band": "ט-י",
+      "seq": 14,
+      "prereqs": ["compound-interest", "inflation-purchasing-power"]
+    },
+    {
+      "id": "insurance",
+      "track": "finlit",
+      "name_he": "ביטוח",
+      "summary_he": "ביטוח הוא הסכם להעברת סיכון תמורת פרמיה, לפי תנאים, חריגים והשתתפות עצמית.",
+      "grade_band": "ט-י",
+      "seq": 15,
+      "prereqs": ["risk-return-diversification", "personal-budget"]
+    }
+  ]
+}

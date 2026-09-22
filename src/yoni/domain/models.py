@@ -109,6 +109,27 @@ class Turn:
 
 
 @dataclass(frozen=True)
+class Conversation:
+    """שיחה אחת מתחילתה ועד סופה - הכותרת שמתחתיה יושבים התורות.
+
+    ended_at ריק כל עוד השיחה פתוחה. summary נכתב רק בסיום, ולכן שיחה שנקטעה
+    (נפילת חשמל, סגירת דפדפן) עדיין נשמרת במלואה - היא פשוט בלי סיכום.
+    """
+
+    conversation_id: str
+    student_id: str
+    started_at: str
+    ended_at: Optional[str] = None
+    title: str = ""
+    summary: str = ""
+    message_count: int = 0
+
+    @property
+    def is_open(self) -> bool:
+        return not self.ended_at
+
+
+@dataclass(frozen=True)
 class BuildPlan:
     """תוכנית שינוי קוד שהמודל הציע. target_file עדיין לא מאומת בשלב הזה."""
 

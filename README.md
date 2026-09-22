@@ -125,3 +125,19 @@ A quiz question with a single correct answer is graded **in code**, never by the
 - A GPU with ≥ 8 GB VRAM is comfortable; less works but heavy models spill to RAM (you get a warning
   at startup)
 - No internet needed at runtime — including the Hebrew fonts, which are served locally
+
+## Learning content
+
+The subject-agnostic content layer stores topics, items, attempts, and mastery in
+`data/yoni_memory.db`. The seeded Hebrew financial-literacy track is defined by
+`data/finlit_topics.json` and `data/finlit_items.json`; adding another subject means
+adding content data, not changing agent logic. The schema is in `schema_topics.sql`.
+
+Run the focused content tests with:
+
+```powershell
+python -m unittest tests.test_content
+```
+
+The database path can be moved by constructing `Settings` with another `project_root`.
+Student mastery is runtime state and is not mirrored into the JSON content files.

@@ -12,8 +12,29 @@ from typing import List, Optional
 
 
 class VramBudget:
-    def __init__(self, settings):
+    """אכיפת התקציב, עם זיכרון קצר על מה שכבר טעון.
+
+    ensure_capacity נקרא לפני *כל* הודעה של תלמיד, והוא פנה ל-Ollama בכל פעם
+    כדי לשאול מה טעון - כ-2 שניות שנוספו לכל תשובה, לרוב כדי לגלות שדבר לא
+    השתנה. התשובה נשמרת לזמן קצר: המצב משתנה רק כשאנחנו עצמנו טוענים או
+    מפרקים מודל, ואת שני אלה אנחנו יודעים מיד.
+    """
+
+    #: כמה שניות לסמוך על הרשימה השמורה. קצר מספיק כדי להתאושש משינוי חיצוני.
+    CACHE_SECONDS = 30.0
+
+    def __init__(self, settings, clock=None):
         self._settings = settings
+        self._loaded: Optional[List[str]] = None
+        self._checked_at = 0.0
+
+    def _now(self) -> float:
+        import time
+        return time.monotonic()
+
+    def invalidate(self) -> None:
+        """מאלץ בדיקה אמיתית בפעם הבאה."""
+        self._loaded = None
 
     def _gb(self, model):
         profile = self._settings.profile(model)
@@ -22,6 +43,20 @@ class VramBudget:
     def is_heavy(self, model: str) -> bool:
         profile = self._settings.profile(model)
         return bool(profile and profile.is_heavy)
+
+    def _fresh_models(self) -> List[str]:
+        """הרשימה מהמטמון אם היא טרייה, אחרת שאילתה אמיתית.
+
+        בכוונה *לא* פרמטר על loaded_models: זו מתודה שמדומה בבדיקות, וחתימה
+        שמשתנה שם שוברת כל מימוש חלופי.
+        """
+        if (self._loaded is not None
+                and self._now() - self._checked_at < self.CACHE_SECONDS):
+            return list(self._loaded)
+        models = self.loaded_models()
+        self._loaded = list(models)
+        self._checked_at = self._now()
+        return list(models)
 
     def loaded_models(self) -> List[str]:
         import requests
@@ -43,6 +78,9 @@ class VramBudget:
             )
         except requests.exceptions.RequestException:
             pass
+        finally:
+            if self._loaded is not None:
+                self._loaded = [m for m in self._loaded if m != model]
 
     def ensure_capacity(self, model: str) -> List[str]:
         """מפנה מקום לפני טעינה. מחזיר את רשימת המודלים שפורקו."""
@@ -51,7 +89,14 @@ class VramBudget:
             return []
 
         unloaded = []
-        current = [m for m in self.loaded_models() if m != model]
+        current = [m for m in self._fresh_models() if m != model]
+
+        # המודל המבוקש כבר טעון ואין אף אחד אחר - אין מה לפנות, וזה המקרה
+        # הרגיל בשיחה רצופה. יציאה כאן חוסכת את כל השאר.
+        if not current:
+            if self._loaded is not None and model not in self._loaded:
+                self._loaded.append(model)
+            return []
 
         if self.is_heavy(model):
             for other in current:
